@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>IT-карьера — расширенный персональный анализ и карта развития</title>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1d2129; --border:#2a2f3a;
+    --text:#e8e9ec; --muted:#9aa1ae; --accent:#EF9F27; --green:#5DCAA5; --red:#E24B4A; --blue:#378ADD;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.6}
+  .wrap{max-width:1060px; margin:0 auto; padding:24px 18px 80px}
+  h1{font-size:28px; margin:0 0 6px}
+  h2{font-size:21px; margin:40px 0 12px; border-left:4px solid var(--accent); padding-left:10px}
+  h3{font-size:17px; margin:22px 0 8px; color:#fff}
+  h4{font-size:15px}
+  p{color:var(--text)}
+  .muted{color:var(--muted); font-size:14px}
+  .profile{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-top:14px}
+  .profile ul{margin:8px 0 0; padding-left:20px}
+  .badge{display:inline-block; background:#2a2f3a; color:#EF9F27; font-size:12px; padding:3px 10px; border-radius:20px; margin:2px 4px 2px 0}
+  .badge.blue{color:#7fb8f0}
+  .badge.green{color:var(--green)}
+  #graph{width:100%; height:560px; background:#0b0d11; border-radius:12px; border:1px solid var(--border); margin-top:16px}
+  #legend{display:flex; flex-wrap:wrap; gap:14px; font-size:13px; margin-top:10px; color:var(--muted)}
+  #legend span{display:inline-flex; align-items:center; gap:6px}
+  .dot{width:10px; height:10px; border-radius:50%; display:inline-block}
+
+  .path-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin-top:14px}
+  .path-card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px}
+  .path-card.primary{border-color:var(--accent); background:linear-gradient(180deg,#221c10,#171a21)}
+  .path-card strong{color:#fff}
+  .tag{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+
+  details{background:var(--card); border:1px solid var(--border); border-radius:12px; margin:12px 0; overflow:hidden}
+  summary{cursor:pointer; padding:16px 20px; font-size:17px; font-weight:600; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; font-size:22px; color:var(--muted); margin-left:auto}
+  details[open] summary::after{content:"–"}
+  .details-body{padding:0 20px 20px}
+  .details-body h3:first-child{margin-top:4px}
+
+  table{width:100%; border-collapse:collapse; margin:10px 0 16px; font-size:14px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top}
+  th{color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase}
+  td.num{font-weight:600; color:#fff; white-space:nowrap}
+  tr.hl td{background:#221c10}
+
+  ul.clean{margin:6px 0; padding-left:18px}
+  ul.clean li{margin:4px 0}
+  a{color:#7fb8f0; text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .pill-row{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0}
+  .pill{background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13px; max-width:100%}
+  .pill b{color:#fff}
+
+  .cert-note{font-size:13px; color:var(--muted); background:var(--card2); border-left:3px solid var(--accent); padding:8px 12px; border-radius:6px; margin:8px 0}
+  .cert-note.warn{border-left-color:#E24B4A}
+  .cert-note.ok{border-left-color:var(--green)}
+
+  .two-col{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px}
+  .mini-card{background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:14px 16px}
+  .mini-card h4{margin:0 0 8px; font-size:14px; color:#fff}
+
+  .timeline{border-left:2px solid var(--border); margin-left:8px; padding-left:20px}
+  .tstep{margin-bottom:22px; position:relative}
+  .tstep::before{content:""; position:absolute; left:-26px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--accent)}
+  .tstep h4{margin:0 0 4px}
+
+  .checklist li{list-style:none; position:relative; padding-left:26px; margin:5px 0}
+  .checklist li::before{content:"☐"; position:absolute; left:0; color:var(--accent); font-size:15px}
+
+  footer{margin-top:50px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted)}
+  .toc{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 20px; margin-top:14px; font-size:14px}
+  .toc a{display:block; padding:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Карта карьеры в IT — расширенное издание</h1>
+  <p class="muted">Персональный анализ под конкретный профиль · рынок РФ · данные на сентябрь 2026</p>
+
+  <div class="profile">
+    <h3>Твой стартовый профиль</h3>
+    <ul>
+      <li>9 классов + СПО «Прикладная информатика по отраслям» (СибГУТИ) — <b>завершено</b></li>
+      <li>1 курс вуза «Информатика и вычислительная техника» — не завершён, база универсальная</li>
+      <li>Опыт: 2 месяца системным администратором (неофициально)</li>
+      <li>Возраст: 21–22 года</li>
+    </ul>
+    <div style="margin-top:10px">
+      <span class="badge">СПО закрывает формальное требование к образованию</span>
+      <span class="badge">Опыт sysadmin — рабочая точка входа</span>
+      <span class="badge green">База Linux/сетей/баз данных — фундамент под 4 направления сразу</span>
+      <span class="badge blue">Вуз можно доучить заочно позже — не блокер старта</span>
+    </div>
+    <p class="muted" style="margin-bottom:0">Ключевая мысль: твоя СПО-специальность «Прикладная информатика» — одна из самых универсальных. Из неё растут и инфраструктура, и разработка, и данные, и 1С. Выбор направления — это выбор, где твоя текущая база даёт максимальное ускорение.</p>
+  </div>
+
+  <div class="toc">
+    <b>Содержание:</b>
+    <a href="#graph-sec">→ Карта направлений и переходов</a>
+    <a href="#paths">→ Рекомендация: варианты пути</a>
+    <a href="#compare">→ Сравнительная таблица всех направлений</a>
+    <a href="#directions">→ Направления подробно: DevOps, Разработка, ИБ, Data, QA, 1С</a>
+    <a href="#roadmap">→ Персональный роадмап на 3 года</a>
+    <a href="#jobhunt">→ Как искать работу в РФ: резюме, собеседования, зарплатные вилки</a>
+  </div>
+
+  <h2 id="graph-sec">Карта направлений и переходов</h2>
+  <div id="graph"></div>
+  <div id="legend">
+    <span><i class="dot" style="background:#5DCAA5"></i>Инфраструктура / Sysadmin</span>
+    <span><i class="dot" style="background:#EF9F27"></i>DevOps / SRE</span>
+    <span><i class="dot" style="background:#63E6BE"></i>Разработка (Backend / Frontend)</span>
+    <span><i class="dot" style="background:#E24B4A"></i>Кибербезопасность</span>
+    <span><i class="dot" style="background:#D85A30"></i>Data</span>
+    <span><i class="dot" style="background:#378ADD"></i>QA</span>
+    <span><i class="dot" style="background:#F2CC60"></i>1C</span>
+    <span><i class="dot" style="background:#AFA9EC"></i>Management</span>
+  </div>
+  <p class="muted">Жёлтая обводка — узел, из которого стартуешь ты. Сплошные линии — стандартная лестница, пунктир — реальные кросс-переходы между направлениями. Толстая оранжевая линия — рекомендованная траектория.</p>
+
+  <h2 id="paths">Рекомендация: четыре варианта пути</h2>
+  <div class="path-cards">
+    <div class="path-card primary">
+      <span class="tag">Основной путь · №1</span>
+      <h4>Sysadmin → DevOps / SRE</h4>
+      <p class="muted">Прямое продолжение твоего опыта. Самый высокий потолок дохода вне разработки, растущий спрос (облака, Kubernetes, миграции на российский стек), естественная лестница без разрывов. Твои 2 месяца sysadmin — уже фактор на собеседовании.</p>
+    </div>
+    <div class="path-card">
+      <span class="tag">Сильный вариант · №2</span>
+      <h4>Разработка: Backend (Python/Java/Go)</h4>
+      <p class="muted">СПО «Прикладная информатика» даёт базу ООП и баз данных. Порог входа выше (8–14 месяцев обучения), но и медианный потолок дохода выше всех остальных направлений. Хороший выбор, если нравится писать код, а не настраивать чужие системы.</p>
+    </div>
+    <div class="path-card">
+      <span class="tag">Параллельный вариант · №3</span>
+      <h4>Sysadmin → Кибербезопасность</h4>
+      <p class="muted">Та же база (сети, Linux), но другой набор сертификатов и осторожность с международными экзаменами. Вход обычно через SOC-аналитика 1-й линии. Спрос устойчивый, регуляторный прессинг на ИБ в РФ только растёт.</p>
+    </div>
+    <div class="path-card">
+      <span class="tag">Быстрый вход в корпоративный сегмент · №4</span>
+      <h4>1С-разработка / 1С-администрирование</h4>
+      <p class="muted">Учитывая твою СПО-специальность — самый недооценённый вариант. 1С стоит почти в каждой компании РФ, порог входа низкий, конкуренция на junior ниже, чем в веб-разработке. Потолок ниже DevOps, но старт быстрее.</p>
+    </div>
+    <div class="path-card">
+      <span class="tag">Запасной вариант · №5</span>
+      <h4>Junior QA</h4>
+      <p class="muted">Самый низкий технический порог входа, но рынок junior-вакансий переполнен (до 16–28 резюме на вакансию). Не первый приоритет при твоём опыте, но рабочий план «Б» — особенно если сразу целиться в автоматизацию.</p>
+    </div>
+    <div class="path-card">
+      <span class="tag">Вариант №6</span>
+      <h4>Data (аналитик → инженер данных)</h4>
+      <p class="muted">SQL + Python — и ты в данных. Средний порог входа (3–6 месяцев на аналитика), стабильный спрос в банках, ритейле, телекоме. Потолок ниже DevOps, но работа «чище» — меньше ночных инцидентов, чем в инфраструктуре.</p>
+    </div>
+  </div>
+
+  <h2 id="compare">Сравнительная таблица всех направлений</h2>
+  <table>
+    <tr><th>Направление</th><th>Порог входа</th><th>Срок до первой работы</th><th>Junior, ₽/мес</th><th>Senior, ₽/мес</th><th>Потолок</th><th>Твоя стартовая база помогает?</th></tr>
+    <tr class="hl"><td><b>Sysadmin → DevOps/SRE</b></td><td class="num">Низкий</td><td class="num">4–8 мес</td><td class="num">70–150к</td><td class="num">300–550к</td><td class="num">Очень высокий</td><td>★★★★★ — опыт sysadmin напрямую засчитывается</td></tr>
+    <tr><td><b>Backend-разработка</b></td><td class="num">Высокий</td><td class="num">8–14 мес</td><td class="num">80–140к</td><td class="num">300–600к</td><td class="num">Максимальный</td><td>★★★☆☆ — база ООП/БД есть, но кода в опыте нет</td></tr>
+    <tr><td><b>Frontend-разработка</b></td><td class="num">Средний</td><td class="num">6–12 мес</td><td class="num">62–150к</td><td class="num">270–750к</td><td class="num">Высокий</td><td>★★☆☆☆ — база почти не пересекается</td></tr>
+    <tr><td><b>Mobile (Android/iOS)</b></td><td class="num">Средний</td><td class="num">8–12 мес</td><td class="num">80–140к</td><td class="num">380–550к</td><td class="num">Высокий</td><td>★★☆☆☆</td></tr>
+    <tr><td><b>Кибербезопасность</b></td><td class="num">Средний</td><td class="num">6–12 мес</td><td class="num">60–150к</td><td class="num">до 400к+</td><td class="num">Высокий</td><td>★★★★☆ — сети и Linux = половина базы ИБ</td></tr>
+    <tr><td><b>Data (аналитик/инженер)</b></td><td class="num">Средний</td><td class="num">3–6 мес</td><td class="num">50–110к</td><td class="num">250–380к</td><td class="num">Средне-высокий</td><td>★★★★☆ — БД и информатика из СПО пригодятся</td></tr>
+    <tr><td><b>QA (лучше сразу в автоматизацию)</b></td><td class="num">Низкий</td><td class="num">2–4 мес</td><td class="num">30–98к</td><td class="num">180–300к</td><td class="num">Средний</td><td>★★★☆☆</td></tr>
+    <tr><td><b>1С-разработка</b></td><td class="num">Низкий</td><td class="num">3–6 мес</td><td class="num">70–110к</td><td class="num">250–400к</td><td class="num">Средний</td><td>★★★★☆ — «Прикладная информатика» прямое попадание</td></tr>
+  </table>
+  <p class="muted">Зарплатные диапазоны — ориентиры по открытым данным hh.ru, Хабр Карьеры, Dream Job на 2025–2026 гг. Регионы — примерно на 20–40% ниже Москвы; удалёнка на московскую компанию из региона — минус 10–20% от московской вилки, но плюс 30–50% к местному рынку.</p>
+
+  <h2 id="directions">Направления подробно</h2>
+
+  <!-- ===================== SYSADMIN / DEVOPS ===================== -->
+  <details open>
+    <summary>Системное администрирование → DevOps / SRE <span class="tag">рекомендовано · путь №1</span></summary>
+    <div class="details-body">
+      <p>Естественное продолжение твоего опыта. Компании почти никогда не берут в DevOps с нуля — подавляющее большинство нынешних DevOps-инженеров прошли через администрирование Linux-серверов. Твои 2 месяца sysadmin — это уже строчка в резюме и темы для разговора на собеседовании.</p>
+
+      <h3>Чем занимаются на каждом уровне</h3>
+      <ul class="clean">
+        <li><b>Junior/Middle Sysadmin:</b> поддержка Linux/Windows-серверов, пользователи, сети, бэкапы, мониторинг (Zabbix/Prometheus), виртуализация (Proxmox/VMware), российские ОС (Astra Linux, РЕД ОС, ALT Linux) — их требуют всё чаще из-за импортозамещения.</li>
+        <li><b>DevOps-инженер:</b> CI/CD-пайплайны, контейнеризация (Docker, Kubernetes), IaC (Terraform, Ansible), облака (Yandex Cloud, VK Cloud, SberCloud), наблюдаемость (Grafana, Loki, ELK).</li>
+        <li><b>SRE / Platform Engineer:</b> надёжность сервисов, SLO/SLI, автоскейлинг, инженерная платформа для разработчиков. Условно — DevOps на уровне Senior с фокусом на надёжность.</li>
+        <li><b>DevOps Architect:</b> проектирование инфраструктуры с нуля, выбор технологий, требования безопасности, стоимость.</li>
+      </ul>
+
+      <h3>Стек по уровням подготовки</h3>
+      <div class="two-col">
+        <div class="mini-card">
+          <h4>База (обязательно для входа)</h4>
+          <ul class="clean">
+            <li>Linux: администрирование, файловая система, права, systemd, cron</li>
+            <li>Bash-скрипты (позже — Python для автоматизации)</li>
+            <li>Сети: TCP/IP, DNS, DHCP, маршрутизация, NAT, firewall (iptables/nftables)</li>
+            <li>Git, SSH, основы nginx/apache</li>
+            <li>Основы Docker</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>Уровень DevOps (год-полтора практики)</h4>
+          <ul class="clean">
+            <li>Kubernetes (обязателен для вакансий от 150к+)</li>
+            <li>CI/CD: GitLab CI, Jenkins, GitHub Actions</li>
+            <li>IaC: Terraform, Ansible</li>
+            <li>Облака: Yandex Cloud / VK Cloud</li>
+            <li>Мониторинг: Prometheus + Grafana, Loki</li>
+            <li>Английский — уверенное чтение документации (не перегружается переводчиком)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Бесплатные курсы и материалы</h3>
+      <ul class="clean">
+        <li><b>Яндекс Практикум — «Инженер облачных сервисов»</b> (practicum.yandex.ru/catalog/free/) — бесплатная техническая программа, ~60 практических работ в собственном облаке, сертификат о прохождении. Лучший бесплатный старт в РФ.</li>
+        <li><b>Stepik</b> — курсы по Linux («Введение в Linux», «Операционные системы»), сетям, Docker, Kubernetes. Часть полностью бесплатна; сертификат обычно недорогой.</li>
+        <li><b>Хекслет</b> — бесплатные вводные модули по инфраструктуре и DevOps-практикам.</li>
+        <li><b>Slurm (slurm.io)</b> — много бесплатных мини-курсов и вебинаров по Kubernetes, Terraform, CI/CD; базовые программы часто бесплатны.</li>
+        <li><b>YouTube-каналы на русском:</b> «АйТиБорода» (интервью и разборы профессий), каналы Яндекс Облака, VK Cloud, «Диджитализируй!».</li>
+      </ul>
+
+      <h3>Pet-проекты, которые реально усиливают резюме</h3>
+      <ul class="clean">
+        <li>Свой VPS/VDS (можно дешёвый, от 200–500 ₽/мес) или домашний сервер: поднять сайт, настроить nginx + TLS (Let's Encrypt), мониторинг.</li>
+        <li>CI/CD-пайплайн: репозиторий на GitLab → сборка Docker-образа → деплой на сервер по пушу в main.</li>
+        <li>Kubernetes-кластер дома: minikube/k3s, развернуть 2–3 приложения, настроить ingress и логирование.</li>
+        <li>Автоматизация bash/ansible: скрипт, который накатывает конфигурацию на чистую виртуалку.</li>
+      </ul>
+
+      <h3>Сертификаты — что реально имеет смысл</h3>
+      <div class="pill-row">
+        <div class="pill"><b>Yandex Cloud Certified Engineer Associate</b> — ~7000₽, экзамен на 65 вопросов: облако, DevOps-автоматизация, безопасность, биллинг. Один из немногих сертификатов, узнаваемых в вакансиях РФ напрямую.</div>
+        <div class="pill"><b>Yandex Cloud Certified Engineer Professional</b> — следующий уровень, имеет смысл уже с опытом.</div>
+        <div class="pill"><b>VK Cloud</b> — аналогичная программа, актуальность и стоимость уточняй на сайте VK Cloud.</div>
+      </div>
+      <div class="cert-note warn">Официальная Cisco Networking Academy приостановлена в России с марта 2022 года. Частные учебные центры ведут программы по учебникам CCNA и выдают собственные сертификаты о прохождении курса — но это не вендорский сертификат Cisco, и сдача официального экзамена из РФ затруднена. Для входа в профессию CCNA не обязателен: та же база по сетям покрывается бесплатными курсами и практикой.</div>
+      <div class="cert-note ok">Linux Foundation / LFCS формально доступны онлайн и ценятся нишево. В приоритете для рынка РФ: Yandex Cloud + реальные pet-проекты в GitLab — этого достаточно для откликов на junior/middle-позиции.</div>
+
+      <h3>Зарплаты по грейдам (₽/мес, РФ, 2026)</h3>
+      <table>
+        <tr><th>Роль / грейд</th><th>Диапазон</th><th>Комментарий</th></tr>
+        <tr><td>Junior Sysadmin</td><td class="num">от 60 000</td><td>в регионах — от 45–50к</td></tr>
+        <tr><td>Middle Sysadmin</td><td class="num">100 000 – 180 000</td><td>с российскими ОС (Astra/РЕД) — плюс 10–20%</td></tr>
+        <tr><td>Senior Sysadmin</td><td class="num">до 241 000</td><td>потолок классического администрирования</td></tr>
+        <tr><td>Junior DevOps</td><td class="num">70 000 – 150 000</td><td>нужен Docker + базовый CI/CD</td></tr>
+        <tr><td>Middle DevOps</td><td class="num">150 000 – 300 000</td><td>медиана ~219–235к; Kubernetes почти обязателен</td></tr>
+        <tr><td>Senior DevOps (Москва)</td><td class="num">до 550 000</td><td>медиана ~340к</td></tr>
+        <tr><td>SRE / Platform Engineer</td><td class="num">300 000 – 500 000+</td><td>высоконагруженные продукты, финтех</td></tr>
+      </table>
+      <p class="muted">Классический sysadmin без облачных технологий упирается в потолок 150–200 тыс ₽. С Kubernetes, Ansible и английским открывается DevOps/SRE на 300–500 тыс ₽. Импортозамещение добавляет спрос на специалистов по отечественным ОС и стеку (Astra Linux, РЕД ОС, PostgreSQL, отечественные СУБД и виртуализация) — это узкая, но хорошо оплачиваемая ниша в госсекторе и крупных компаниях.</p>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Порог входа в sysadmin — низкий: курсы + практика на домашних лабах занимают 4–8 месяцев. Переход sysadmin → DevOps происходит обычно на middle-грейде, через 2–4 года практики. Это осознанная точка роста, которую нельзя пропустить, иначе траектория зафиксируется на классическом администрировании с потолком ~200к. Минус направления: дежурства, ночные инциденты, онколл. Плюс: один из самых высоких потолков дохода при низком пороге входа.</p>
+    </div>
+  </details>
+
+  <!-- ===================== DEVELOPMENT ===================== -->
+  <details>
+    <summary>Разработка: Backend / Frontend / Mobile / Fullstack <span class="tag">путь №2 · самый высокий потолок дохода</span></summary>
+    <div class="details-body">
+      <p>Разработка — направление с максимальным потолком дохода в IT и самым широким рынком: на hh.ru постоянно 50 000+ вакансий для программистов. Твоя СПО-специальность «Прикладная информатика» обычно включает программирование, ООП и базы данных — это реальная база, но её надо превратить в практический навык: писать код каждый день 8–12 месяцев. Это самый долгий вход из всех вариантов в этой карте, но и самый масштабируемый по доходу.</p>
+
+      <h3>Четыре трека внутри разработки — что выбрать</h3>
+      <table>
+        <tr><th>Трек</th><th>Стек</th><th>Кому подходит</th><th>Junior, ₽/мес</th><th>Senior, ₽/мес</th></tr>
+        <tr class="hl"><td><b>Backend</b></td><td>Python (Django/FastAPI), Java (Spring), Go, C# (.NET)</td><td>Любишь логику, данные, архитектуру. Больше всего вакансий и самый высокий средний чек.</td><td class="num">80 000 – 140 000</td><td class="num">300 000 – 600 000</td></tr>
+        <tr><td><b>Frontend</b></td><td>JavaScript/TypeScript, React или Vue, Next.js, CSS</td><td>Любишь видеть результат сразу, визуал, интерфейсы. Чуть проще войти, но junior-конкуренция жёсткая.</td><td class="num">62 000 – 150 000</td><td class="num">270 000 – 750 000</td></tr>
+        <tr><td><b>Mobile</b></td><td>Kotlin/Android или Swift/iOS, Flutter/React Native</td><td>Меньше конкуренции на junior, чем во frontend. Вакансий меньше, специалистов дефицит.</td><td class="num">80 000 – 140 000</td><td class="num">380 000 – 550 000</td></tr>
+        <tr><td><b>Fullstack</b></td><td>JS/TS + Node.js + React/Vue + SQL</td><td>Для небольших команд и стартапов. Медианно платят на 20–30% больше чистых фронтендеров.</td><td class="num">70 000 – 120 000</td><td class="num">300 000 – 500 000</td></tr>
+      </table>
+
+      <h3>С чего начать backend-разработчику (самый прямой путь с твоей базы)</h3>
+      <ul class="clean">
+        <li><b>Язык:</b> Python — самый быстрый вход (Django/FastAPI) и самый популярный для автоматизации в ИБ/DevOps; Java — больше enterprise-вакансий в банках и крупных компаниях; Go — растёт, платят больше, но джунов берут редко.</li>
+        <li><b>Базы данных:</b> SQL (PostgreSQL) обязательно; основы Redis, MongoDB — плюс.</li>
+        <li><b>Практика:</b> 2–3 pet-проекта с GitHub-историей коммитов: REST API (FastAPI/Django) + авторизация (JWT) + деплой (Docker + свой VPS или Yandex Cloud).</li>
+        <li><b>Теория для собеседований:</b> ООП, структуры данных, алгоритмы (базово — leetcode easy), HTTP, REST, SOLID, паттерны проектирования.</li>
+      </ul>
+
+      <h3>Чем занимаются на каждом грейде</h3>
+      <ul class="clean">
+        <li><b>Junior (0–1,5 года):</b> закрывает простые задачи по готовой спецификации, пишет код под ревью. От него ждут базового стека, Git и умения учиться — не «знатока синтаксиса».</li>
+        <li><b>Middle (1,5–4 года):</b> закрывает задачу от постановки до продакшена самостоятельно: проектирование, код, тесты, ревью, деплой. Самый массовый и «тёплый» сегмент рынка — 48% всех вакансий.</li>
+        <li><b>Senior (4–8 лет):</b> архитектурные решения, менторинг, вывод проектов из кризисов. На этом уровне язык уже не важен — важны домен (финтех, хайлоад, ML) и конкретные навыки.</li>
+        <li><b>Team Lead / Architect:</b> ~340–450к+ медианно; Lead-архитекторы в топовых компаниях — выше 500к.</li>
+      </ul>
+
+      <h3>Бесплатные курсы и материалы</h3>
+      <ul class="clean">
+        <li><b>Яндекс Практикум (бесплатные программы):</b> «Основы Python», «Основы Java» и др. — полноценные бесплатные треки с практикой и сертификатом.</li>
+        <li><b>Stepik:</b> «Поколение Python» (курс на русском, лучший старт по языку), курсы по SQL, Git, алгоритмам. Много полностью бесплатного.</li>
+        <li><b>Хекслет:</b> бесплатный вводный курс по разработке на JS/Java/Python — хорош, чтобы понять, нравится ли писать код.</li>
+        <li><b>freeCodeCamp, CS50 (Гарвард, с русскими субтитрами), The Odin Project</b> — мировые бесплатные программы, полезны в дополнение.</li>
+        <li><b>Для мобильной разработки:</b> официальные бесплатные курсы Android-разработки на русском (developer.android.com/courses) и Swift от Apple (Swift Playgrounds, бесплатно).</li>
+      </ul>
+
+      <h3>Сертификаты</h3>
+      <div class="cert-note">В разработке сертификаты почти не решают — решают GitHub с живыми проектами и успешное техническое собеседование (живое кодирование или тестовое задание). Международные сертификации (Oracle Java, AWS — формально ограничены для РФ) на российском рынке дают мало. Исключение — <b>сертификация 1С</b>, см. отдельный раздел ниже.</div>
+
+      <h3>Зарплаты по грейдам и языкам (₽/мес, РФ, 2026, данные hh.ru/Хабр Карьера/Dream Job)</h3>
+      <table>
+        <tr><th>Язык / стек</th><th>Junior</th><th>Middle</th><th>Senior</th></tr>
+        <tr><td>Python (Django/FastAPI)</td><td class="num">80–120к</td><td class="num">200–300к</td><td class="num">350–500к</td></tr>
+        <tr><td>Java (Spring)</td><td class="num">85–125к</td><td class="num">170–280к</td><td class="num">380–550к</td></tr>
+        <tr><td>Go</td><td class="num">100–150к</td><td class="num">250–380к</td><td class="num">400–600к</td></tr>
+        <tr><td>C# (.NET)</td><td class="num">85–125к</td><td class="num">165–280к</td><td class="num">260–550к</td></tr>
+        <tr><td>JavaScript/TypeScript (fullstack)</td><td class="num">80–130к</td><td class="num">200–320к</td><td class="num">350–500к</td></tr>
+        <tr><td>React/Vue frontend</td><td class="num">62–180к (медиана ~95к)</td><td class="num">140–420к (медиана ~210к)</td><td class="num">270–750к (медиана ~360к)</td></tr>
+        <tr><td>Kotlin Android / Swift iOS</td><td class="num">80–140к</td><td class="num">200–350к</td><td class="num">380–550к</td></tr>
+        <tr><td>PHP</td><td class="num">60–100к</td><td class="num">140–220к</td><td class="num">220–300к</td></tr>
+        <tr><td>Медиана всех программистов</td><td class="num">77к</td><td class="num">167к</td><td class="num">280к</td></tr>
+      </table>
+      <p class="muted">Ключевые факторы дохода: грейд (главный), стек (TypeScript +12–18%, Kubernetes +10–15%, владение AI-инструментами в 2026 году уже почти обязательно и даёт премию 10–15%), тип компании (финтех и продуктовые +20–30% к рынку, госсектор −20%), регион (Москва 197к медиана против ~110к в регионах; удалёнка сглаживает разницу до 11–13%). Конкуренция на junior — 16–28 резюме на вакансию; на senior — 3–4. Вывод: быстрее всего расти через смену компании после каждого грейда-прыжка, а не через повышения «на месте».</p>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Средний срок от «ноль кода» до первого оффера — 8–14 месяцев ежедневной практики (2–3 часа в день минимум). Junior → Middle: +50–80% к зарплате за 1–2 года. Middle → Senior: +60–100% за 2–4 года. Самый большой скачок — переход в Senior. Минус: самая высокая конкуренция на входе. Плюс: после Senior дефицит, и язык/стек перестают быть ограничением.</p>
+    </div>
+  </details>
+
+  <!-- ===================== CYBERSECURITY ===================== -->
+  <details>
+    <summary>Кибербезопасность (ИБ) <span class="tag">путь №3</span></summary>
+    <div class="details-body">
+      <p>Параллельный вариант из той же базы (сети, Linux, понимание инфраструктуры). Вход обычно через SOC-аналитика 1-й линии или администратора средств защиты информации. Регуляторное давление на ИБ в РФ (152-ФЗ, требования ФСТЭК/ФСБ, обязательный мониторинг инцидентов для КИИ) гарантирует устойчивый спрос — это не модное, а юридически вынужденное направление.</p>
+
+      <h3>Треки внутри ИБ</h3>
+      <ul class="clean">
+        <li><b>SOC-аналитик (самый частый вход):</b> мониторинг алертов SIEM, триаж инцидентов, работа с CrowdStrike/Kaspersky EDR, MaxPatrol SIEM, расследование. Сменный график — реальность первых лет.</li>
+        <li><b>Администратор СЗИ / инженер по защите:</b> внедрение и поддержка средств защиты: межсетевые экраны, антивирусы, DLP, сканеры уязвимостей, ПАК «Инспектор», SecretNet и т.п.</li>
+        <li><b>Пентест / Red Team:</b> поиск уязвимостей, взлом по заказу. Вход почти всегда только после опыта в защите.</li>
+        <li><b>GRC / аудит ИБ:</b> документооборот, 152-ФЗ, приказы ФСТЭК, сертификация. Меньше техники, больше работы с требованиями — но порог входа ниже.</li>
+      </ul>
+
+      <h3>Что нужно знать на входе</h3>
+      <ul class="clean">
+        <li>Сети и Linux — та же база, что и для sysadmin (это твоё преимущество)</li>
+        <li>Основы Python/Bash для автоматизации разбора логов</li>
+        <li>Типовые тактики атак (по матрице MITRE ATT&amp;CK), основы SIEM</li>
+        <li>152-ФЗ «О персональных данных», приказы ФСТЭК №17/21 — часто спрашивается на собеседованиях даже на junior</li>
+        <li>Для роста: Windows-администрирование (Active Directory — мишень №1 атак в корпоративном сегменте)</li>
+      </ul>
+
+      <h3>Бесплатные курсы</h3>
+      <ul class="clean">
+        <li><b>PT Education (edu.ptsecurity.com)</b> — бесплатные вводные курсы Positive Technologies; платные программы с дипломом о профпереподготовке — один из самых узнаваемых брендов на рынке ИБ РФ.</li>
+        <li><b>Beeline Cloud «Deep Security»</b> — бесплатный курс с видеолекциями экспертов индустрии, включая Positive Technologies.</li>
+        <li><b>BI.ZONE Academy</b> — образовательная платформа крупнейшего игрока рынка ИБ РФ, есть бесплатные программы.</li>
+        <li><b>Stepik</b> — вводные курсы по основам ИБ.</li>
+      </ul>
+
+      <h3>Практика (CTF и лаборатории)</h3>
+      <p>Для ИБ-кандидата pet-проект = участие в CTF (соревнования по взлому): <b>HackTheBox, TryHackMe, Root-Me</b> — профиль на этих платформах с решёнными машинами убедительнее любого сертификата на junior-уровне. В РФ проводятся очные CTF от Positive Technologies, BI.ZONE, Сбербанка — участие само по себе строчка в резюме.</p>
+
+      <h3>Сертификаты — важный нюанс</h3>
+      <div class="cert-note warn">Международные сертификаты (CEH, OSCP, CISSP, Security+, GPEN) формально требуют процедуры легализации диплома для признания в РФ, а доступ к части площадок сдачи экзаменов из России осложнён. Неформально они повышают доверие HR (OSCP статистически связан с зарплатой примерно на 59% выше медианы), но это не универсальный пропуск на рынке РФ.</div>
+      <p>Более рабочий путь в реалиях РФ — обучение и сертификация от отечественных вендоров (Positive Technologies, BI.ZONE, «ИнфоТеКС», «Код Безопасности»): их инструменты реально стоят у российских работодателей, и сертификат от вендора часто равен опыту работы с их продуктом.</p>
+      <div class="cert-note">Если планируешь расти до архитектора ИБ / CISO в регулируемой отрасли (банки, госсектор, КИИ): для части лицензируемых должностей формально нужно профильное высшее образование или диплом о переподготовке от 250+ часов. Здесь заочное доучивание вуза или проф.переподготовка перестают быть «опцией».</div>
+
+      <h3>Зарплаты по грейдам (₽/мес, РФ, 2026)</h3>
+      <table>
+        <tr><th>Роль / грейд</th><th>Диапазон</th></tr>
+        <tr><td>Стажёр</td><td class="num">от 30 000</td></tr>
+        <tr><td>Junior SOC / ИБ (до 1 года)</td><td class="num">60 000 – 150 000 (Москва) / 50 000 – 100 000 (регионы)</td></tr>
+        <tr><td>Middle</td><td class="num">150 000 – 300 000 (медиана ~227к)</td></tr>
+        <tr><td>Senior</td><td class="num">до 400 000+</td></tr>
+        <tr><td>Lead / архитектор ИБ</td><td class="num">от 362 000</td></tr>
+        <tr><td>Общая медиана рынка ИБ</td><td class="num">~162 400</td></tr>
+      </table>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Порог входа сопоставим с sysadmin (6–12 месяцев), но конкуренция на junior выше из-за популярности профессии. Главный финансовый факт направления: переход Junior → Middle обычно удваивает или утраивает зарплату — самый значимый скачок среди всех IT-направлений. Минус: сменные дежурства в SOC первые 1–2 года. Плюс: устойчивый спрос независимо от экономических циклов (ИБ — обязательная статья расходов компании по закону).</p>
+    </div>
+  </details>
+
+  <!-- ===================== DATA ===================== -->
+  <details>
+    <summary>Data: аналитик → инженер данных → дата-сайентист <span class="tag">путь №6</span></summary>
+    <div class="details-body">
+      <p>Твоя СПО-специальность «Прикладная информатика» даёт неплохую базу для этого направления — там обычно есть базы данных и основы анализа. Data — «чистая» работа: нет дежурств инфраструктуры и ночных релизов, но нужна аккуратность и любовь к данным.</p>
+
+      <h3>Треки внутри Data</h3>
+      <ul class="clean">
+        <li><b>Аналитик данных:</b> SQL, Excel/Google Sheets, BI (Power BI, Tableau, DataLens от Яндекса), статистика, визуализация. Быстрый вход, работа ближе к бизнесу.</li>
+        <li><b>Инженер данных (Data Engineer):</b> Python, Airflow, SQL, DWH (ClickHouse, Greenplum — актуально для РФ), потоковая обработка (Kafka). Технически сложнее, платят больше (230–350к на middle).</li>
+        <li><b>Дата-сайентист:</b> ML, статистика, математика. Самый высокий порог — нужна серьёзная математическая база; джунов берут мало.</li>
+        <li><b>1С-аналитик / консультант:</b> см. раздел про 1С ниже — пересекается с этим треком.</li>
+      </ul>
+
+      <h3>Что нужно знать на входе (аналитик)</h3>
+      <ul class="clean">
+        <li>SQL — обязателен для любого входа в данные; оконные функции — разделитель junior и middle</li>
+        <li>Excel (сводные таблицы, ВПР) и один BI-инструмент: Яндекс DataLens (бесплатный, популярен в РФ) или Power BI</li>
+        <li>Базовая статистика: средние, медианы, распределения, корреляция ≠ причинность</li>
+        <li>Для роста в инженера: Python (Pandas), Airflow, основы DWH</li>
+      </ul>
+
+      <h3>Бесплатные курсы</h3>
+      <ul class="clean">
+        <li><b>Яндекс Практикум</b> — бесплатные курсы «Excel для работы», вводные по анализу данных, с сертификатом.</li>
+        <li><b>Stepik</b> — курсы по SQL («Интерактивный тренажёр по SQL»), основам Python для анализа данных; много полностью бесплатного.</li>
+        <li><b>Яндекс DataLens</b> — официальная бесплатная документация и обучающие материалы; сам инструмент бесплатен — можно собрать портфолио дашбордов без затрат.</li>
+      </ul>
+
+      <h3>Сертификаты и портфолио</h3>
+      <p>В Data нет одного доминирующего сертификата — решают портфолио: 2–3 дашборда в DataLens/Power BI на открытых данных (data.mos.ru, ЕМИСС, Kaggle) + описание выводов. Это убедительнее любого удостоверения. Практический совет: возьми открытый датасет (например, цены на жильё или данные hh.ru), построй дашборд и выложи с описанием — это твой главный аргумент на собеседовании.</p>
+
+      <h3>Зарплаты по грейдам (₽/мес, РФ, 2026)</h3>
+      <table>
+        <tr><th>Роль / грейд</th><th>Диапазон</th></tr>
+        <tr><td>Junior Data Analyst (Москва)</td><td class="num">81 200 – 109 000</td></tr>
+        <tr><td>Junior Data Analyst (регионы)</td><td class="num">50 000 – 70 000</td></tr>
+        <tr><td>Data-инженер (middle)</td><td class="num">230 000 – 350 000</td></tr>
+        <tr><td>Общий диапазон по рынку</td><td class="num">30 000 – 380 000</td></tr>
+        <tr><td>Системный/дата-аналитик (Хабр Карьера)</td><td class="num">141 000 – 312 000</td></tr>
+      </table>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Средний порог входа — SQL и базовая аналитика осваиваются за 3–6 месяцев. Госпрограммы переподготовки (например, «Специалист по аналитике и базам данных», 256 часов) заявляют выход на зарплату от 120 000₽ — актуальность таких офферов проверяй индивидуально по конкретным вакансиям. Траектория роста: аналитик → инженер данных даёт +50–100% к доходу и уводит от «ручного» Excel к инженерии.</p>
+    </div>
+  </details>
+
+  <!-- ===================== QA ===================== -->
+  <details>
+    <summary>QA: тестирование → автоматизация <span class="tag">путь №5 · запасной вариант</span></summary>
+    <div class="details-body">
+      <p>Технически самый низкий порог входа, но рынок junior-позиций переполнен: до 16–28 резюме на одну вакансию. Не лучший первый приоритет с учётом твоего опыта в инфраструктуре, но рабочий план «Б» — особенно если сразу целиться в автоматизацию, где конкуренция ниже, а доход на 45% выше.</p>
+
+      <h3>Что нужно знать на входе</h3>
+      <ul class="clean">
+        <li>Теория тестирования: виды и уровни тестирования, тест-кейсы, чек-листы, баг-репорты, жизненный цикл бага</li>
+        <li>Тестирование API: Postman, чтение документации (Swagger/OpenAPI)</li>
+        <li>SQL — для проверки данных в БД</li>
+        <li>Основы сетей и HTTP (коды ответов) — здесь твоя sysadmin-база даёт преимущество</li>
+        <li>Для роста в автоматизацию (AQA): Python или Java + Selenium/Playwright, основы CI</li>
+      </ul>
+
+      <h3>Бесплатные курсы</h3>
+      <ul class="clean">
+        <li><b>Stepik</b> — «Тестирование ПО с нуля» (Артём Русов), интерактивный вводный курс.</li>
+        <li><b>Хабр Курсы</b> — бесплатный курс по тестированию API и Git.</li>
+        <li><b>Лиана Аладжалова, «Погружение в тестирование»</b> — популярная бесплатная YouTube-программа для входа.</li>
+      </ul>
+
+      <h3>Сертификаты</h3>
+      <p>Международный ISTQB Foundation Level ценится, но проверяй актуальность и доступность сдачи экзамена в России на момент решения — условия периодически меняются. На junior-уровне ISTQB решает мало; важнее качественно оформленные тест-кейсы в портфолио (можно оформить тестирование любого публичного сайта в Notion/Google Docs с баг-репортами).</p>
+
+      <h3>Зарплаты по грейдам (₽/мес, РФ, 2026)</h3>
+      <table>
+        <tr><th>Роль / грейд</th><th>Диапазон</th></tr>
+        <tr><td>Junior Manual QA</td><td class="num">30 000 – 98 000 (медиана вакансий hh.ru)</td></tr>
+        <tr><td>Middle Manual QA</td><td class="num">~140 000</td></tr>
+        <tr><td>Middle Automation QA (AQA)</td><td class="num">~210 000</td></tr>
+        <tr><td>Senior QA (Москва)</td><td class="num">180 000 – 298 000</td></tr>
+      </table>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Формально самый быстрый вход (2–4 месяца на базовую подготовку), но именно поэтому — самая высокая конкуренция. Разница в доходах между Manual и Automation достигает 45% — стоит сразу учить Python и целиться в AQA. Реалистичная траектория: Manual QA → AQA → QA Lead, либо переход из AQA в разработку (частый и рабочий кросс-переход).</p>
+    </div>
+  </details>
+
+  <!-- ===================== 1C ===================== -->
+  <details>
+    <summary>1С-разработка / 1С-администрирование <span class="tag">путь №4 · недооценённый корпоративный сегмент</span></summary>
+    <div class="details-body">
+      <p>1С стоит почти в каждой компании РФ — от ИП до Сбера и РЖД. Это отдельная экосистема с собственным языком (встроенный язык 1С, запросы, СКД) и рынком, где специалистов по-прежнему меньше, чем задач. Учитывая твою СПО-специальность «Прикладная информатика по отраслям» — это прямое попадание: в таких колледжах часто учат именно 1С.</p>
+
+      <h3>Треки внутри 1С</h3>
+      <ul class="clean">
+        <li><b>1С-программист (разработчик):</b> доработка конфигураций (УПП, ERP, УТ, ЗУП, Бухгалтерия), написание обработок, отчётов на СКД, интеграции (HTTP/REST, обмены, EnterpriseData).</li>
+        <li><b>1С-администратор / консультант:</b> внедрение, обновление, резервное копирование, настройка прав, консультирование пользователей. Вход проще, чем в разработку — хороший старт.</li>
+        <li><b>1С-аналитик:</b> сбор требований, постановка задач разработчикам. Пересекается с Data/аналитикой.</li>
+      </ul>
+
+      <h3>Что нужно знать на входе</h3>
+      <ul class="clean">
+        <li>Встроенный язык 1С и язык запросов (похож на SQL)</li>
+        <li>Одна массовая конфигурация: «1С:Бухгалтерия» или «1С:Управление торговлей»</li>
+        <li>Основы бухгалтерского/управленческого учёта — без них в вакансиях тяжело</li>
+        <li>Типовые механизмы: СКД, обмены данными, права доступа</li>
+        <li>Плюс твоей sysadmin-базы: администрирование серверов 1С, PostgreSQL, публикация веб-сервисов</li>
+      </ul>
+
+      <h3>Бесплатные курсы и материалы</h3>
+      <ul class="clean">
+        <li><b>1С:Учебный центр №1 и №3</b> — регулярные бесплатные вебинары и курсы от вендора.</li>
+        <li><b>Курсы от франчайзи 1С</b> — многие партнёры дают бесплатные вводные модули ради набора стажёров.</li>
+        <li><b>Инфостарт (infostart.ru)</b> — крупнейшее сообщество 1С: статьи, вебинары, бесплатные материалы.</li>
+        <li><b>zup1c.ru, «Курсы 1С и Excel» (Юлия Бушуева)</b> — бесплатные YouTube-курсы по ЗУП и разработке.</li>
+      </ul>
+
+      <h3>Сертификаты — здесь они реально решают</h3>
+      <div class="cert-note ok">Сертификация «1С:Специалист» — один из немногих случаев в IT РФ, где сертификат напрямую влияет на найм: многие вакансии пишут «сертификат 1С:Специалист — преимущество/обязателен». Сдаётся в официальных центрах по всей России, стоит недорого (порядка 3–6 тыс. ₽ за попытку). «1С:Профессионал» — базовый уровень, сдаётся онлайн, дешевле. Порядок: Профессионал по платформе → Специалист по нужной конфигурации.</div>
+
+      <h3>Зарплаты по грейдам (₽/мес, РФ, 2026)</h3>
+      <table>
+        <tr><th>Роль / грейд</th><th>Диапазон</th></tr>
+        <tr><td>Junior 1С-программист</td><td class="num">70 000 – 110 000</td></tr>
+        <tr><td>Middle 1С-программист</td><td class="num">150 000 – 250 000</td></tr>
+        <tr><td>Senior 1С-разработчик</td><td class="num">250 000 – 400 000+</td></tr>
+        <tr><td>1С-архитектор / руководитель направления</td><td class="num">от 350 000</td></tr>
+      </table>
+
+      <h3>Сложность и срок входа</h3>
+      <p>Низкий порог входа: 3–6 месяцев до junior-позиции. Конкуренция на junior заметно ниже, чем во frontend/QA. Потолок ниже, чем в DevOps или backend-разработке, но вход быстрее и предсказуемее. Типовые минусы: работа «в легаси», зависимость от экосистемы одного вендора. Плюсы: стабильный спрос, удалёнка повсеместно, твоё СПО — идеальное попадание. Хорош как самостоятельный трек и как подушка безопасности параллельно с DevOps-направлением.</p>
+    </div>
+  </details>
+
+  <h2 id="roadmap">Твой персональный роадмап на 3 года</h2>
+  <div class="timeline">
+    <div class="tstep">
+      <h4>Этап 0 — сейчас, 0–2 месяца</h4>
+      <ul class="checklist">
+        <li>Оформить опыт sysadmin в резюме (даже 2 месяца «серого» опыта — строчка «поддерживал N машин, настраивал X»).</li>
+        <li>Откликаться на junior sysadmin / helpdesk / техподдержку 2-й линии — цель: официальная позиция хоть с какой-то зарплатой; опыт важнее денег на этом этапе.</li>
+        <li>Стартовать бесплатный курс Яндекс Практикума «Инженер облачных сервисов».</li>
+        <li>Вести конспект в Notion/Obsidian по всему, что учишь — это станет базой знаний для собеседований.</li>
+      </ul>
+    </div>
+    <div class="tstep">
+      <h4>Этап 1 — 2–8 месяцев</h4>
+      <ul class="checklist">
+        <li>Linux: пользователи, права, systemd, cron, сети — закрепить практикой на домашней лабе (VirtualBox + 2–3 виртуалки) или дешёвом VPS.</li>
+        <li>Bash-скрипты: автоматизировать 3–5 рутинных задач (бэкапы, мониторинг диска, отчёты).</li>
+        <li>Git + Docker: собрать первое приложение в контейнер, выложить на GitLab/GitHub.</li>
+        <li>Pet-проект №1: свой сервер с сайтом, TLS, мониторингом — описать в README по-русски и по-английски.</li>
+        <li>Английский 20–30 минут ежедневно — цель: чтение документации без переводчика.</li>
+        <li>Решение-точка: если за эти месяцы понял, что код нравится больше инфраструктуры — переключиться на backend-трек (Python). Это нормальная развилка, не провал.</li>
+      </ul>
+    </div>
+    <div class="tstep">
+      <h4>Этап 2 — 8–14 месяцев</h4>
+      <ul class="checklist">
+        <li>Сдать Yandex Cloud Certified Engineer Associate (~7000₽) — реальный плюс в резюме на рынке РФ.</li>
+        <li>Освоить CI/CD (GitLab CI): пайплайн сборки и деплоя из pet-проекта.</li>
+        <li>Kubernetes: minikube/k3s дома, 2–3 приложения, ingress, логи.</li>
+        <li>Ansible или Terraform: автоматизация конфигурации — второй pet-проект.</li>
+        <li>Первый «настоящий» оффер: junior DevOps / сильный junior sysadmin. Ориентир по деньгам: 70–120к в зависимости от города.</li>
+      </ul>
+    </div>
+    <div class="tstep">
+      <h4>Этап 3 — 1,5–3 года</h4>
+      <ul class="checklist">
+        <li>Переход на Middle Sysadmin с явным уклоном в DevOps, либо сразу Junior+/Middle DevOps.</li>
+        <li>Глубина: Kubernetes в проде, наблюдаемость (Prometheus/Grafana/Loki), IaC на реальной инфраструктуре.</li>
+        <li>Развилка: DevOps/SRE (потолок 400–600к) или кибербезопасность (SOC → Security Engineer). Критерий выбора: нравятся ли системы и автоматизация (DevOps) или атаки/защита и расследования (ИБ).</li>
+        <li>Зарплатные переговоры: прыжок через смену компании даёт больше, чем повышение на месте. Ориентир: +30–50% при смене после года-полутора.</li>
+      </ul>
+    </div>
+    <div class="tstep">
+      <h4>Параллельно, всегда</h4>
+      <ul class="checklist">
+        <li>Вуз — доучить заочно, без фанатизма (1–2 предмета в семестр). Не блокер старта и среднего роста, но понадобится для архитектора/CISO/руководителя в крупной или регулируемой компании.</li>
+        <li>Английский — до уровня уверенного чтения и переписки; это +20–40% к потолку дохода и доступ к удалённым контрактам.</li>
+        <li>Сообщество: Telegram-чаты по своему стеку (Kubernetes, Linux, DevOps-чаты), конференции (итоговые бесплатные стримы), open-source в меру.</li>
+        <li>Финансовая подушка 3–6 месяцев жизни — даёт спокойствие откликаться избирательно, а не в панике.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="jobhunt">Как искать работу в РФ: практика</h2>
+
+  <div class="two-col">
+    <div class="mini-card">
+      <h4>Резюме</h4>
+      <ul class="clean">
+        <li>hh.ru — основная площадка; профиль заполнен на 100%: все поля, фото, портфолио, GitLab/GitHub-ссылки.</li>
+        <li>Структура: навыки ключевыми словами из вакансий (Linux, bash, Docker, Git, TCP/IP — так и писать, «экспортировать» не нужно).</li>
+        <li>Достижения цифрами: «поддерживал 15 рабочих станций и 2 сервера», «автоматизировал бэкап скриптом, сократив время с 2 часов до 10 минут».</li>
+        <li>Опыт в порядке релевантности, не хронологии; 1 страница для junior.</li>
+        <li>Хабр Карьера как дополнение + профиль на GitHub с README на русском.</li>
+      </ul>
+    </div>
+    <div class="mini-card">
+      <h4>Собеседования</h4>
+      <ul class="clean">
+        <li>Типовая схема: скрининг HR (30 мин) → техническое собеседование (Linux, сети, bash, твои pet-проекты) → иногда тестовое задание → оффер.</li>
+        <li>Готовь рассказ о каждом pet-проекте: зачем, что было сложно, что получилось. Это 70% успеха на junior-собеседовании.</li>
+        <li>Не выдумывай опыт — лучше «не знаю, но разберусь так-то». В инфраструктуре ложь раскрывается за день работы.</li>
+        <li>Тренировочные собеседования: откликайся на вакансии «для прокачки», даже если не планируешь соглашаться.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:16px">
+    <div class="mini-card">
+      <h4>Где искать</h4>
+      <ul class="clean">
+        <li><b>hh.ru</b> — 70% рынка; настрой автопоиск и подписки на 5–7 запросов («junior системный администратор», «junior DevOps», «helpdesk», «техподдержка 2 линия»).</li>
+        <li><b>Хабр Карьера</b> — вакансии IT-компаний с указанием вилок.</li>
+        <li><b>Telegram-каналы вакансий</b> — @devops_jobs, @sysadmin_jobs и региональные чаты (Новосибирск — твой город по вузу: там сильный IT-рынок).</li>
+        <li><b>Карьерные страницы</b>: Яндекс, Сбер, Тинькофф/Т-Банк, VK, Ростелеком — стажёрские программы (многие платят стажёрам 40–80к).</li>
+        <li><b>Интеграторы и хостинг-провайдеры</b> (Selectel, Timeweb, REG.RU и др.) — часто берут junior-ов с горящими глазами.</li>
+      </ul>
+    </div>
+    <div class="mini-card">
+      <h4>Зарплатные переговоры</h4>
+      <ul class="clean">
+        <li>На junior-уровне диапазон вилки обычно узкий — вилку называй от максимума своих ожиданий, но реально оценивай рынок своего города.</li>
+        <li>Считай полный пакет: ДМС, обучение, техника, дежурства (оплачиваются ли отдельно — в инфраструктуре это заметная статья).</li>
+        <li>Первый оффер — не приговор: 6–12 месяцев опыта, и рынок уже видит тебя иначе. Плановые прыжки каждые 1,5–2 года на +30–50% — норма отрасли.</li>
+        <li>Региональная стратегия: удалёнка на московскую компанию из региона = +30–50% к местному рынку минус 10–20% от московской вилки.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Данные по зарплатам собраны из открытых источников (hh.ru, Хабр Карьера, Dream Job, обзоры Sense IT, отраслевые блоги) по состоянию на сентябрь 2026 года и могут отличаться в конкретных вакансиях и регионах. Перед оплатой любых сертификаций проверяй актуальные условия на официальных сайтах — рынок и условия сдачи экзаменов меняются быстро. Этот документ — карта ориентиров, а не гарантий: финальные решения принимай на основе пробных pet-проектов в каждом направлении, которое приглянулось.
+  </footer>
+
+</div>
+
+<script>
+const nodes = [
+  { id: 1,  label: "Junior Sysadmin\n(ты сейчас)", group: "infra", borderWidth: 3, color: {border:"#EF9F27", background:"#5DCAA5"} },
+  { id: 2,  label: "Middle Sysadmin",   group: "infra" },
+  { id: 3,  label: "Senior / Infra Lead", group: "infra" },
+
+  { id: 10, label: "Junior DevOps",     group: "devops" },
+  { id: 11, label: "DevOps Engineer",   group: "devops" },
+  { id: 12, label: "SRE / Platform Eng.", group: "devops" },
+  { id: 13, label: "DevOps Architect",  group: "devops" },
+
+  { id: 60, label: "Junior Backend Dev\n(Python/Java/Go)", group: "dev" },
+  { id: 61, label: "Backend Developer", group: "dev" },
+  { id: 62, label: "Senior Backend / Architect", group: "dev" },
+  { id: 63, label: "Frontend Developer\n(JS/TS + React/Vue)", group: "dev" },
+  { id: 64, label: "Mobile Dev\n(Kotlin/Swift)", group: "dev" },
+
+  { id: 20, label: "SOC Junior /\nИБ администратор", group: "sec" },
+  { id: 21, label: "Security Engineer", group: "sec" },
+  { id: 22, label: "Security Architect", group: "sec" },
+  { id: 23, label: "CISO", group: "sec" },
+
+  { id: 30, label: "Data Analyst",      group: "data" },
+  { id: 31, label: "Data Engineer",     group: "data" },
+  { id: 32, label: "Data Scientist",    group: "data" },
+
+  { id: 40, label: "Junior QA",         group: "qa" },
+  { id: 41, label: "Automation QA",     group: "qa" },
+  { id: 42, label: "QA Lead",           group: "qa" },
+
+  { id: 70, label: "Junior 1С-разработчик", group: "onec" },
+  { id: 71, label: "1С-разработчик /\nконсультант", group: "onec" },
+  { id: 72, label: "1С-архитектор",     group: "onec" },
+
+  { id: 50, label: "Team Lead",         group: "mgmt" },
+  { id: 51, label: "Engineering Manager", group: "mgmt" },
+];
+
+const edges = [
+  { from: 1, to: 2 }, { from: 2, to: 3 },
+  { from: 10, to: 11 }, { from: 11, to: 12 }, { from: 12, to: 13 },
+  { from: 60, to: 61 }, { from: 61, to: 62 },
+  { from: 63, to: 61, dashes: true, label: "fullstack" },
+  { from: 64, to: 61, dashes: true },
+  { from: 20, to: 21 }, { from: 21, to: 22 }, { from: 22, to: 23 },
+  { from: 30, to: 31 }, { from: 31, to: 32 },
+  { from: 40, to: 41 }, { from: 41, to: 42 },
+  { from: 70, to: 71 }, { from: 71, to: 72 },
+  { from: 3, to: 50 }, { from: 50, to: 51 },
+  { from: 62, to: 50, dashes: true },
+  { from: 22, to: 50, dashes: true },
+
+  { from: 1, to: 10, color:{color:"#EF9F27"}, width:3, label:"рекоменд. №1" },
+  { from: 2, to: 11, color:{color:"#EF9F27"}, width:3 },
+  { from: 1, to: 20, dashes: true, label:"путь №3" },
+  { from: 2, to: 21, dashes: true },
+  { from: 1, to: 30, dashes: true, label:"путь №6" },
+  { from: 1, to: 60, dashes: true, label:"путь №2" },
+  { from: 1, to: 70, dashes: true, label:"путь №4" },
+  { from: 1, to: 40, dashes: true, label:"путь №5" },
+  { from: 41, to: 20, dashes: true, label:"security testing" },
+  { from: 11, to: 61, dashes: true, label:"Dev→DevOps" },
+  { from: 61, to: 11, dashes: true },
+];
+
+const groupColors = {
+  infra:{ background:"#5DCAA5", border:"#0F6E56" },
+  devops:{ background:"#EF9F27", border:"#854F0B" },
+  dev:{ background:"#63E6BE", border:"#0F766E" },
+  sec:{ background:"#E24B4A", border:"#A32D2D" },
+  data:{ background:"#D85A30", border:"#993C1D" },
+  qa:{ background:"#378ADD", border:"#185FA5" },
+  onec:{ background:"#F2CC60", border:"#854F0B" },
+  mgmt:{ background:"#AFA9EC", border:"#534AB7" },
+};
+
+const visNodes = nodes.map(n => ({
+  ...n,
+  color: n.color || groupColors[n.group],
+  font: { color: "#111", size: 13, multi: false },
+  shape: "box",
+  margin: 10,
+}));
+
+const visEdges = edges.map(e => ({
+  ...e,
+  color: e.color || { color: "#555" },
+  font: { color: "#ccc", size: 10, strokeWidth: 0 },
+  arrows: "to",
+}));
+
+const container = document.getElementById("graph");
+const data = { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges) };
+const options = {
+  physics: { stabilization: true, barnesHut: { gravitationalConstant: -8000, springLength: 150 } },
+  interaction: { hover: true, tooltipDelay: 100 },
+  nodes: { borderWidth: 2 },
+};
+new vis.Network(container, data, options);
+</script>
+</body>
+</html>
